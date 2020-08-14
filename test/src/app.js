@@ -1,14 +1,18 @@
+const PORT = process.env.PORT || 3000;
+const DB_LOCAL_URL = process.env.DB_LOCAL_URL || 'mongodb://localhost:27017/test';
+
+
 const express = require('express');
 const bodyParser = require('body-parser');
-const app = express();
 const mongoose = require('mongoose');
-const Schema = mongoose.Schema;
+const app = express();
 
+app.listen(PORT, () => { console.log(`Listning port ${PORT}`) });
 
 
 // MongoDBの接続情報
 const connectDatabase = () => {
-    mongoose.connect(process.env.DB_LOCAL_URI || 'mongodb://localhost:27017/test', {
+    mongoose.connect(DB_LOCAL_URL, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
         useCreateIndex: true
@@ -30,36 +34,20 @@ const userSchema = new mongoose.Schema({
 const User = mongoose.model('User', userSchema);
 
 
-app.listen(3000, () => { console.log('P3000') });
+// ミドルウェア
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 
-app.get('/', (req, res) => {
-    console.log(req.query);
-    res.status(200).send('OK');
-});
-
-
-app.get('/;id', (req, res) => {
-    console.log(req.params);
-    res.status(200).send('OK');
-});
-
-
+// 新規登録
 app.post('/signup', async (req, res) => {
-    console.log(req.body);
-    console.log(req.body.id);
-    console.log(req.body.ps);
-    console.log(req.body.name);
-
     const {
         id,
         ps,
         name
     } = req.body;
 
-    // ユーザー登録
+    // DBにユーザーを登録する
     try {
         const user = await User.create({
             id,
@@ -67,6 +55,7 @@ app.post('/signup', async (req, res) => {
             name
         });
     } catch (err) {
+        console.log(err.message);
         res.status(500).send('DBに保存できませんでした');
     }
     res.status(200).send('OK');
